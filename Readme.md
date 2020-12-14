@@ -1,4 +1,4 @@
-# COT Readme
+# Readme
 **COT**
 
 **License**
