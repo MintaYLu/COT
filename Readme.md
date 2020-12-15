@@ -76,35 +76,72 @@ Cosine based One-sample Test (COT) Python package is designed to detect marker g
         - output_threshold (float, [0, 1]): Same as threshold in the class method save_cos_values.
     - Outputs:
         - csv file(s) which stores the input genes with their cos values and the corresponding subtypes. Same as the outputs of the class method save_cos_values.
+
 ## Example:
-
-
+1. Perform COT calculation step by step:
+    1. Import the COT package
     from COT import COT
-    
     cot = COT()
-    cot.cos_pipeline("input_gene.csv", "output_cos.csv", output_threshold=0.9)
+    2. Load the csv file (“input_gene.csv”)
+    cot.load_data(filename="input_gene.csv", logarithmic_data=False)
 
-input_gene.csv:
+input: “input_gene.csv”
 
 | gene | A   | A   | B   | B   |
 | ---- | --- | --- | --- | --- |
 | 0    | 0.5 | 0.7 | 0.7 | 0.9 |
 | 1    | 1.0 | 1.0 | 0.0 | 0.0 |
 
-output_cos.csv:
+output: df_raw
+
+| gene | A   | A.1 | B   | B.1 |
+| ---- | --- | --- | --- | --- |
+| 0    | 0.5 | 0.7 | 0.7 | 0.9 |
+| 1    | 1.0 | 1.0 | 0.0 | 0.0 |
+
+    3. Generate the subtype mean values
+    cot.generate_subtype_means()
+
+output: df_mean
+
+| gene | A   | B   |
+| ---- | --- | --- |
+| 0    | 0.6 | 0.8 |
+| 1    | 1.0 | 0.0 |
+
+    4. Generate the cosine values
+    cot.generate_cos_values()
+
+output: df_cos
+
+| gene | cos | subtype |
+| ---- | --- | ------- |
+| 0    | 0.8 | B       |
+| 1    | 1.0 | A       |
+
+    5. Export the cosine values (without a threshold)
+    cot.save_cos_values(filename="output_cos.csv", threshold=None, sorted=True)
+
+output: “output_cos.csv”
 
 | gene | cos | subtype |
 | ---- | --- | ------- |
 | 1    | 1.0 | A       |
 | 0    | 0.8 | B       |
 
-  output_cos_threshold=0.9.csv:
+    6. Export the cosine values (with a threshold)
+    cot.save_cos_values(filename="output_cos.csv", threshold=0.9, sorted=True)
+
+output: “output_cos_threshold=0.9.csv”
 
 | gene | cos | subtype |
 | ---- | --- | ------- |
 | 1    | 1.0 | A       |
 
+2. Or use the pipeline:
+    from COT import COT
+    
+    cot = COT()
+    cot.cos_pipeline(input_file="input_gene.csv",output_file="output_cos.csv", logarithmic_input=False, sorted_output=True, output_threshold=0.9)
 
- 
- 
-
+Then we will obtain the same output with a single step.
