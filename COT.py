@@ -4,22 +4,24 @@ import warnings
 warnings.filterwarnings("ignore")
 
 class COT:
-    def __init__(self, silent=False):
-        self.df_raw = None
-        self.df_mean = None
+    def __init__(self, df_raw=None, df_mean=None, silent=False):
+        self.df_raw = df_raw
+        self.df_mean = df_mean
         self.df_cos = None
         self.silent = silent
         
+        if self.df_raw is None and self.df_mean is None:
+            raise ValueError("df_raw and df_mean cannot be None at the same time.")
         if not self.silent:
             print(f"COT: package initiated.")
     
-    def load_data(self, filename, logarithmic_data=False):
-        self.df_raw = pd.read_csv(filename, index_col=0)
-        if logarithmic_data:
-            self.df_raw = self.df_raw.apply(lambda x: 2 ** x)
-        
-        if not self.silent:
-            print(f"COT: data imported from \'{filename}\'.")
+    # def load_data(self, filename, logarithmic_data=False):
+    #   self.df_raw = pd.read_csv(filename, index_col=0)
+    #    if logarithmic_data:
+    #        self.df_raw = self.df_raw.apply(lambda x: 2 ** x)
+    #    
+    #    if not self.silent:
+    #        print(f"COT: data imported from \'{filename}\'.")
     
     def generate_subtype_means(self):
         map_subtypes = {}
