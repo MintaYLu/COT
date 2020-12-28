@@ -2,6 +2,8 @@ import collections
 import math
 import numpy as np
 import pandas as pd
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 # import warnings
 # warnings.filterwarnings("ignore")
 
@@ -11,7 +13,10 @@ class COT:
         self.df_mean = df_mean
         self.subtypes = collections.defaultdict(list)
         self.df_cos = None
+        self.markers = {}
+        
         self.silent = silent
+        
         
         if self.df_raw is None and self.df_mean is None:
             raise ValueError("df_raw and df_mean cannot be None at the same time.")
@@ -59,9 +64,12 @@ class COT:
         for subtype in self.subtypes:
             self.df_mean[subtype] = self.df_raw[self.subtypes[subtype]].mean(axis=1)
         
+        self.markers = {i: [] for i in self.subtypes.keys()}
+        
         if not self.silent:
             print(f"COT: subtype means generated.")
 
+            
     def generate_cos_values(self):
         df_mean_cos = self.df_mean.apply(lambda x: x / np.linalg.norm(x), axis=1)
         
@@ -71,6 +79,37 @@ class COT:
         
         if not self.silent:
             print(f"COT: cos values generated.")
+            
+            
+    def obtain_subtype_markers(self, pThre=None, top=None, per=None):
+        if top is not None:
+            cos_sorted = self.df_cos.sort_values(by='cos', ascending=False)
+            for i in range(top):
+                self.markers[cos_sorted.iloc[i, 1]].append(cos_sorted.index[i])
+   
+
+    def plot_simplex(self):
+        X = self.df_mean
+        Xproj = X.divide(X.sum(axis=1), axis=0)
+        Xproj = Xproj.to_numpy().transpose()
+
+        K = len(X.columns)
+        A = np.identity(K)
+        PS = np.vstack((np.cos(np.arange(K) * 2 * np.pi / K), np.sin(np.arange(K) * 2 * np.pi / K)))
+        tmp = np.matmul(PS, np.linalg.pinv(A))
+        Xp = pd.DataFrame(np.matmul(tmp, Xproj), columns=X.index)
+        
+        
+        plt.axes().set_aspect('equal', 'datalim')
+        plt.scatter(Xp.iloc[0, ], Xp.iloc[1, ], marker = 'o', s=10,
+                    color='#%02x%02x%02x' % (200, 200, 200), facecolors='none', alpha=0.3)
+        mg_col = ['red','blue','orange','green','purple']
+
+        for i, cell in enumerate(self.markers):
+            plt.scatter(Xp.loc[0, self.markers[cell]], Xp.loc[1, self.markers[cell]], marker = 'o', s=10,
+                        color=mg_col[i], facecolors='none')
+
+        plt.scatter(PS[0], PS[1], marker='^', color='k', s=15)
     
     # def save_cos_values(self, filename, threshold=None, sorted=True):
     #    df_output = self.df_cos.copy()
