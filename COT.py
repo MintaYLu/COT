@@ -1,11 +1,12 @@
 import collections
+import math
 import numpy as np
 import pandas as pd
 # import warnings
 # warnings.filterwarnings("ignore")
 
 class COT:
-    def __init__(self, df_raw=None, df_mean=None, logarithmic_data=False, silent=False):
+    def __init__(self, df_raw=None, df_mean=None, logarithmic_data=False, normalization=True, silent=False):
         self.df_raw = df_raw
         self.df_mean = df_mean
         self.subtypes = collections.defaultdict(list)
@@ -20,6 +21,21 @@ class COT:
                 self.df_raw = self.df_raw.apply(lambda x: 2 ** x)
             if self.df_mean is not None:
                 self.df_mean = self.df_mean.apply(lambda x: 2 ** x)
+                
+        if normalization:
+            if self.df_raw is not None:
+                nor_mean = self.df_raw.sum(axis=0).mean()
+                nor_digit = math.floor(math.log10(nor_mean))
+                nor_const = math.floor(nor_mean / (10**nor_digit)) * (10**nor_digit)
+                for sample in self.df_raw:
+                    self.df_raw[sample] = self.df_raw[sample] / self.df_raw[sample].sum() * nor_const
+                
+            if self.df_mean is not None:
+                nor_mean = self.df_mean.sum(axis=0).mean()
+                nor_digit = math.floor(math.log10(nor_mean))
+                nor_const = math.floor(nor_mean / (10**nor_digit)) * (10**nor_digit)       
+                for sample in self.df_mean:
+                    self.df_mean[sample] = self.df_mean[sample] / self.df_mean[sample].mean() * nor_const
         
         if not self.silent:
             print(f"COT: package initiated.")
