@@ -41,12 +41,46 @@ Cosine based One-sample Test (COT) Python package is designed to detect marker g
 
 ## Functions
 
-- COT(df_raw=None, df_mean=None, logarithmic_data=False, normalization=True, silent=False)
-- generate_subtype_means(subtype_label)
-- generate_cos_values()
-- estimate_p_values()
-- obtain_subtype_markers(pThre=None, qThre=0.05, top=None, per=None)
-- plot_simplex()
+- COT(df_raw, df_mean, logarithmic_data, normalization, silent): COT class constructor.
+    - Parameters:
+        - df_raw (Pandas.DataFrame): Default value is None.
+        - df_mean (Pandas.DataFrame): Default value is None.
+        - normalization (True/False): Default value is “True”.
+        - logarithmic_data (True/False): If “True”, then the input data in the csv file is logarithmic, and we perform the exponential transformation to restore the raw gene features during the data loading process. Default value is “False”.
+        - normalization (True/False): Default value is “True”.
+        - silent (True/False): If “True”, turn off the standard output. Default value is “False”.
+    - Outputs:
+        - N/A
+- generate_subtype_means(subtype_label): Generate a dataframe to restore the subtype means, which are the mean values of the gene data within the same subtypes.
+    - Parameters:
+        - subtype_label (list(str)): Default value is None.
+    - Outputs:
+        - Store the subtype mean data at the class attribute, df_mean, where the index is the gene name, and the column represents the subtype name.
+- generate_cos_values(): Compute the cos value for each subtype, then find the maximum cos value and the corresponding subtype.
+    - Parameters:
+        - N/A
+    - Outputs:
+        - Store the maximum cos value and the corresponding subtype for each gene at the class attribute, df_cos, where the index is the gene name, and the column “cos”, “subtype” represent the maximum cos value and the corresponding subtype, repectively.
+- estimate_p_values(): 
+    - Parameters:
+        - N/A
+    - Outputs:
+        - N/A
+- obtain_subtype_markers(pThre, qThre, top, per): 
+    - Parameters:
+        - pThre (): Default value is None.
+        - qThre (): Default value is 0.05.
+        - top (): Default value is None.
+        - per (): Default value is None.
+    - Outputs:
+        - N/A
+- plot_simplex(): 
+    - Parameters:
+        - N/A
+    - Outputs:
+        - N/A
+
+
 
 - COT(silent): COT class constructor.
     - Parameters:
