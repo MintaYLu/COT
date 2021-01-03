@@ -41,12 +41,12 @@ Cosine based One-sample Test (COT) Python package is designed to detect marker g
 
 ## Functions
 
-df_raw=None, df_mean=None, logarithmic_data=False, normalization=True, silent=False)
-generate_subtype_means(subtype_label)
-generate_cos_values()
-estimate_p_values()
-obtain_subtype_markers(pThre=None, qThre=0.05, top=None, per=None)
-plot_simplex()
+- COT(df_raw=None, df_mean=None, logarithmic_data=False, normalization=True, silent=False)
+- generate_subtype_means(subtype_label)
+- generate_cos_values()
+- estimate_p_values()
+- obtain_subtype_markers(pThre=None, qThre=0.05, top=None, per=None)
+- plot_simplex()
 
 - COT(silent): COT class constructor.
     - Parameters:
