@@ -43,8 +43,8 @@ Cosine based One-sample Test (COT) Python package is designed to detect marker g
 
 - COT(df_raw, df_mean, logarithmic_data, normalization, silent): COT class constructor.
     - Parameters:
-        - df_raw (Pandas.DataFrame): Default value is None.
-        - df_mean (Pandas.DataFrame): Default value is None.
+        - df_raw (pandas.DataFrame): Default value is None.
+        - df_mean (pandas.DataFrame): Default value is None.
         - normalization (True/False): Default value is “True”.
         - logarithmic_data (True/False): If “True”, then the input data in the csv file is logarithmic, and we perform the exponential transformation to restore the raw gene features during the data loading process. Default value is “False”.
         - normalization (True/False): Default value is “True”.
