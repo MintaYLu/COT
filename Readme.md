@@ -40,12 +40,12 @@ Cosine based One-sample Test (COT) Python package is designed to detect marker g
 
 
 ## Functions
-- COT(df_raw, df_mean, logarithmic_data, normalization, silent): COT class constructor.
+- COT(df_raw, df_mean, logarithmic_data, normalization, silent): COT class constructor. During this step either the raw gene data or the subtype mean data will be imported and preprocessed, i.e., performing exponential transformation or sample-wise normalization.
     - Parameters:
         - df_raw (pandas.DataFrame): The raw gene data stored as a pandas Dataframe. df_raw has the following format: each row represents a gene, and each column represents a sample. Default value is None.
         - df_mean (pandas.DataFrame): The subtype mean data stored as a pandas Dataframe. df_mean has the following format: each row represents a gene, and each column represents a subtype. Default value is None.
-        - logarithmic_data (True/False): If “True”, then the input data in the csv file is logarithmic, and we perform the exponential transformation to restore the raw gene features during the data loading process. Default value is “False”.
-        - normalization (True/False): If “True”, then the input data will be normalized during the preprocessing step. Default value is “True”.
+        - logarithmic_data (True/False): If “True”, then the input data, df_raw and df_mean, is logarithmic, and we perform the exponential transformation to restore the raw gene features during the data loading process. Default value is “False”.
+        - normalization (True/False): If “True”, then the feature-wise normalizayion will be applied to the input data, df_raw and df_mean. Default value is “True”.
         - silent (True/False): If “True”, turn off the standard output. Default value is “False”.
     - Outputs:
         - Store the raw gene data at the class attribute, df_raw.
