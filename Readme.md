@@ -70,8 +70,8 @@ Cosine based One-sample Test (COT) Python package is designed to detect marker g
     - Parameters:
         - pThre (float, [0, 1]): If set to be a finite value, then only the instances with "p.value" <= pThre will be selected. Default value is None.
         - qThre (float, [0, 1]): If set to be a finite value, then only the instances with "q.value" <= qThre will be selected. Default value is 0.05.
-        - top (int): If set to be a finite value, then only the instances with the n-largest (n = parameter "top") maximum cos values will be selected. Default value is None.
-        - per (int): If set to be a finite value, then only the instances with the n-largest (n = parameter "per") maximum cos values per subtype will be selected. Default value is None.
+        - top (int): If set to be a finite value, then only the instances with the top n (n = parameter "top") maximum cos values will be selected. Default value is None.
+        - per (int): If set to be a finite value, then only the instances with the top n (n = parameter "per") maximum cos values per subtype will be selected. Default value is None.
     - Outputs:
         - Store the marker genes for each subtype as a python dictionary, where the subtypes and corresponding marker genes are the keys and values, respectively, at the class attribute, markers.
 - plot_simplex(): 
