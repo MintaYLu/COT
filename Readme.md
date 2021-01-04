@@ -40,42 +40,45 @@ Cosine based One-sample Test (COT) Python package is designed to detect marker g
 
 
 ## Functions
-- COT(silent): COT class constructor.
+- COT(df_raw, df_mean, logarithmic_data, normalization, silent): COT class constructor. During this step either the raw gene data or the subtype mean data will be imported and preprocessed, i.e., performing exponential transformation or sample-wise normalization.
     - Parameters:
-        - silent (True/False): If “True”, turn off the standard output. Default value is “False”.
-- load_data(filename, logarithmic_data): Import the raw gene data from the csv file. The csv file has the following format: each row represents a gene, and each column represents the expression level of a sample; and the first column represents the gene names, and the first row represents the subtypes of the corresponding samples.
-    - Parameters:
-        - filename (str): The filename of the gene data.
-        - logarithmic_data (True/False): If “True”, then the input data in the csv file is logarithmic, and we perform the exponential transformation to restore the raw gene features during the data loading process. Default value is “False”.
+        - df_raw (pandas.DataFrame): The raw gene data stored as a pandas Dataframe. df_raw has the following format: each row represents a gene, and each column represents a sample. Default value is None.
+        - df_mean (pandas.DataFrame): The subtype mean data stored as a pandas Dataframe. df_mean has the following format: each row represents a gene, and each column represents a subtype. Default value is None.
+        - logarithmic_data (True/False): If True, then the input data, df_raw and df_mean, is logarithmic, and we perform the exponential transformation to restore the raw gene features during the data loading process. Default value is False.
+        - normalization (True/False): If True, then the feature-wise TPM normalization will be applied to the input data, df_raw and df_mean. Default value is True.
+        - silent (True/False): If True, turn off the standard output. Default value is False.
     - Outputs:
-        - Store the raw gene data at the class attribute, df_raw. In the dataframe, df_raw, the index is the gene name, and the column is the sample name, which is “subtype_name”, “subtype_name.1”, “subtype_name.2”, etc.
-- generate_subtype_means(): Generate a dataframe to restore the subtype means, which are the mean values of the gene data within the same subtypes.
+        - Store the raw gene data at the class attribute, df_raw.
+        - Store the subtype mean data at the class attribute, df_mean.
+- generate_subtype_means(subtype_label): Generate a dataframe to restore the subtype means, which are the mean values of the gene data within the same subtypes.
     - Parameters:
-        - N/A
-    - Ouputs:
+        - subtype_label (list(str)): The subtype label for each sample stored as a python list. Default value is None.
+    - Outputs:
         - Store the subtype mean data at the class attribute, df_mean, where the index is the gene name, and the column represents the subtype name.
-- generate_cos_values(): Compute the cos value for each subtype, then find the maximum cos value and the corresponding subtype. 
+- generate_cos_values(): Compute the cos value for each subtype, then find the maximum cos value and the corresponding subtype.
     - Parameters:
         - N/A
     - Outputs:
-        - Store the maximum cos value and the corresponding subtype for each gene at the class attribute, df_cos, where the index is the gene name, and the column “cos”, “subtype” represent the maximum cos value and the corresponding subtype, repectively.
-- save_cos_values(filename, threshold=None, sorted=True): Save the gene names, maximum cos values and the corresponding subtypes into a csv file.
+        - Store the maximum cos value and the corresponding subtype for each gene at the class attribute, df_cos, where the index is the gene name, and the column "cos", "subtype" represent the maximum cos value and the corresponding subtype, respectively.
+- estimate_p_values(): Estimate the p-value for the maximum cos value of each gene. During this step, the distribution function of the maximum cos value, <img src="https://render.githubusercontent.com/render/math?math=f_\text{dist}(x)">, is fitted to <img src="https://render.githubusercontent.com/render/math?math=k"> Gaussian functions, where <img src="https://render.githubusercontent.com/render/math?math=k"> is the number of subtypes. Then the p-value can be estimated as <img src="https://render.githubusercontent.com/render/math?math=p(x) = \frac{\int_{x}^{x_\text{max}}{f_\text{dist}(t) dt}}{\int_{x_\text{min}}^{x_\text{max}}{f_\text{dist}(t) dt}}">, where <img src="https://render.githubusercontent.com/render/math?math=x"> represents the maximum cos value for each gene, and <img src="https://render.githubusercontent.com/render/math?math=x_\text{min} = \frac{1}{\sqrt{k}}">, <img src="https://render.githubusercontent.com/render/math?math=x_\text{max} = 1"> are its minimum and maximum values, respectively. Furthermore, the multiple test q-values are calculated using the FDR control method. Note that the true positive instances, which appear close to <img src="https://render.githubusercontent.com/render/math?math=x = 1"> and above the fitted distribution function <img src="https://render.githubusercontent.com/render/math?math=f_\text{dist}(x)">, are removed using an iterative process.
     - Parameters:
-        - filename (str): The filename of the output data.
-        - threshold (float, [0, 1]): If threshold is set to some finite value, then another csv file will be generated, which only stores the genes with a maximum cos value >= threshold. Default value is “None”.
-        - sorted (True/False): If “true“, the gene will be sorted by the cos value in the descending order. Default value is “True”.
+        - N/A
     - Outputs:
-        - A csv file (filename) stores all the genes with their cos values and the corresponding subtypes.
-        - Another csv file (filename + threshold information) when threshold is set to some finite value, which stores the data when cos value >= threshold.
-- cos_pipeline(input_file, output_file, logarithmic_input, sorted_output, output_threshold): A pipeline to process the COT algorithm.
+        - Store the p-value for the maximum cos value of each gene at the column "p.value" of the class attribute, df_cos.
+        - Store the multiple test q-value for the maximum cos value of each gene at the column "q.value" of the class attribute, df_cos.
+- obtain_subtype_markers(pThre, qThre, top, per): Obtain a dictionary showing the marker genes for each subtype, and filtered by p-value, q-value and maximum cos value thresholds.
     - Parameters:
-        - input_file (str): Same as filename in the class method load_data.
-        - output_file (str): Same as filename in the class method save_cos_values.
-        - logarithmic_input (True/False): Same as logarithmic_data in the class method load_data.
-        - sorted_output (True/False): Same as sorted in the class method save_cos_values.
-        - output_threshold (float, [0, 1]): Same as threshold in the class method save_cos_values.
+        - pThre (float, [0, 1]): If set to be a finite value, then only the instances with "p.value" <= pThre will be selected. Default value is None.
+        - qThre (float, [0, 1]): If set to be a finite value, then only the instances with "q.value" <= qThre will be selected. Default value is 0.05.
+        - top (int): If set to be a finite value, then only the instances with the top n (n = parameter "top") maximum cos values will be selected. Default value is None.
+        - per (int): If set to be a finite value, then only the instances with the top n (n = parameter "per") maximum cos values per subtype will be selected. Default value is None.
     - Outputs:
-        - csv file(s) which stores the input genes with their cos values and the corresponding subtypes. Same as the outputs of the class method save_cos_values.
+        - Store the marker genes for each subtype as a python dictionary, where the subtypes and corresponding marker genes are the keys and values, respectively, at the class attribute, markers.
+- plot_simplex(): Simplex plot of the cos values for each gene, where the radius and angle represent the cos values and subtypes, respectively. The marker genes for seperate subtypes, which are obtained from the class method, obtain_subtype_markers(), are labeled with different colors.
+    - Parameters:
+        - N/A
+    - Outputs:
+        - N/A
 
 ## Example:
 1. Perform COT calculation step by step:

@@ -72,8 +72,7 @@ class COT:
         
         if not self.silent:
             print(f"COT: subtype means generated.")
-
-            
+    
     def generate_cos_values(self):
         df_mean_cos = self.df_mean.apply(lambda x: x / np.linalg.norm(x), axis=1)
         
@@ -83,7 +82,6 @@ class COT:
         
         if not self.silent:
             print(f"COT: cos values generated.")
-            
     
     def estimate_p_values(self):
         print("COT: estimating p-values.....")
@@ -96,6 +94,17 @@ class COT:
         dataNum = len(dataFit)
         pvalFit = np.zeros(dataNum)
         subNum = len(self.subtypes)
+        
+        def mix_norm_cdf(x, weights, means, covars, lower, upper):
+            mcdf = np.zeros([1, len(x)])
+            mnor = np.zeros([1, len(x)])
+            for i in range(len(weights)):
+                mcdf += weights[i] * (norm.cdf(x, loc=means[i], scale=covars[i]**(0.5)) - 
+                                      norm.cdf(lower, loc=means[i], scale=covars[i]**(0.5))) 
+                mnor += weights[i] * (norm.cdf(upper, loc=means[i], scale=covars[i]**(0.5)) - 
+                                      norm.cdf(lower, loc=means[i], scale=covars[i]**(0.5)))
+            mcdf /= mnor
+            return mcdf.reshape(-1)
         
         while ((sum(pvalFit < pThreL[-1]) - dataNum * pThreL[-1]) / sum(pvalFit < pThreL[-1])) > 0.001:
             tic = time.perf_counter()
@@ -116,7 +125,7 @@ class COT:
    
             gm = GaussianMixture(n_components=subNum, tol=1e-5, max_iter=10000,
                                  weights_init=gmW, means_init=gmM, precisions_init=gmP).fit(dataFit.reshape(-1, 1))
-            pvalFit = 1 - self.mix_norm_cdf(dataFit, gm.weights_, gm.means_, gm.covariances_, 1/(subNum**0.5), 1)
+            pvalFit = 1 - mix_norm_cdf(dataFit, gm.weights_, gm.means_, gm.covariances_, 1/(subNum**0.5), 1)
     
             dataFitNew = []   
             for i in range(1, len(pThreL)):       
@@ -133,22 +142,10 @@ class COT:
             toc = time.perf_counter()
             print(f"Iteration {count}: {toc - tic:0.4f} seconds")
             
-        self.df_cos['p.value'] = 1 - self.mix_norm_cdf(self.df_cos['cos'], gm.weights_, gm.means_, gm.covariances_, 1/(subNum**0.5), 1)
+        self.df_cos['p.value'] = 1 - mix_norm_cdf(self.df_cos['cos'], gm.weights_, gm.means_, gm.covariances_, 1/(subNum**0.5), 1)
         self.df_cos['q.value'] = multipletests(self.df_cos['p.value'], method='fdr_bh')[1]
         print("COT: p-values estimated.")
     
-    def mix_norm_cdf(self, x, weights, means, covars, lower, upper):
-        mcdf = np.zeros([1, len(x)])
-        mnor = np.zeros([1, len(x)])
-        for i in range(len(weights)):
-            mcdf += weights[i] * (norm.cdf(x, loc=means[i], scale=covars[i]**(0.5)) - 
-                                  norm.cdf(lower, loc=means[i], scale=covars[i]**(0.5))) 
-            mnor += weights[i] * (norm.cdf(upper, loc=means[i], scale=covars[i]**(0.5)) - 
-                                  norm.cdf(lower, loc=means[i], scale=covars[i]**(0.5)))
-        mcdf /= mnor
-        return mcdf.reshape(-1)
-            
-            
     def obtain_subtype_markers(self, pThre=None, qThre=0.05, top=None, per=None):
         self.markers = {i: [] for i in self.subtypes.keys()}
         cos_sorted = self.df_cos.sort_values(by='cos', ascending=False)  
@@ -170,8 +167,7 @@ class COT:
             for subtype in self.markers:
                 self.markers[subtype] =\
                 cos_sorted.loc[self.markers[subtype]].index[cos_sorted.loc[self.markers[subtype], 'q.value'] <= qThre]
-   
-
+    
     def plot_simplex(self):
         X = self.df_mean
         Xproj = X.divide(X.sum(axis=1), axis=0)
