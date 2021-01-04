@@ -40,25 +40,19 @@ Cosine based One-sample Test (COT) Python package is designed to detect marker g
 
 
 ## Functions
-
-Import the raw gene data from the csv file. The csv file has the following format: each row represents a gene, and each column represents the expression level of a sample; and the first column represents the gene names, and the first row represents the subtypes of the corresponding samples.
-Parameters:
-filename (str): The filename of the gene data.
-logarithmic_data (True/False): If “True”, then the input data in the csv file is logarithmic, and we perform the exponential transformation to restore the raw gene features during the data loading process. Default value is “False”.
-Outputs:
-Store the raw gene data at the class attribute, df_raw. In the dataframe, df_raw, the index is the gene name, and the column is the sample name, which is “subtype_name”, “subtype_name.1”, “subtype_name.2”, etc.
-
 - COT(df_raw, df_mean, logarithmic_data, normalization, silent): COT class constructor.
     - Parameters:
-        - df_raw (pandas.DataFrame): The raw gene data stored as pandas Dataframe. df_raw has the following format: each row represents a gene, and each column represents a sample. Default value is None.
-        - df_mean (pandas.DataFrame): The subtype mean data stored as pandas Dataframe. df_mean has the following format: each row represents a gene, and each column represents a subtype. Default value is None.- logarithmic_data (True/False): If “True”, then the input data in the csv file is logarithmic, and we perform the exponential transformation to restore the raw gene features during the data loading process. Default value is “False”.
+        - df_raw (pandas.DataFrame): The raw gene data stored as a pandas Dataframe. df_raw has the following format: each row represents a gene, and each column represents a sample. Default value is None.
+        - df_mean (pandas.DataFrame): The subtype mean data stored as a pandas Dataframe. df_mean has the following format: each row represents a gene, and each column represents a subtype. Default value is None.
+        - logarithmic_data (True/False): If “True”, then the input data in the csv file is logarithmic, and we perform the exponential transformation to restore the raw gene features during the data loading process. Default value is “False”.
         - normalization (True/False): If “True”, then the input data will be normalized during the preprocessing step. Default value is “True”.
         - silent (True/False): If “True”, turn off the standard output. Default value is “False”.
     - Outputs:
-        - N/A
+        - Store the raw gene data at the class attribute, df_raw.
+        - Store the subtype mean data at the class attribute, df_mean.
 - generate_subtype_means(subtype_label): Generate a dataframe to restore the subtype means, which are the mean values of the gene data within the same subtypes.
     - Parameters:
-        - subtype_label (list(str)): Default value is None.
+        - subtype_label (list(str)): The subtype label for each sample stored as a python list. Default value is None.
     - Outputs:
         - Store the subtype mean data at the class attribute, df_mean, where the index is the gene name, and the column represents the subtype name.
 - generate_cos_values(): Compute the cos value for each subtype, then find the maximum cos value and the corresponding subtype.
