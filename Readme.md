@@ -74,7 +74,7 @@ Cosine based One-sample Test (COT) Python package is designed to detect marker g
         - per (int): If set to be a finite value, then only the instances with the top n (n = parameter "per") maximum cos values per subtype will be selected. Default value is None.
     - Outputs:
         - Store the marker genes for each subtype as a python dictionary, where the subtypes and corresponding marker genes are the keys and values, respectively, at the class attribute, markers.
-- plot_simplex(): 
+- plot_simplex(): Simplex plot of the cos values for each gene, where the radius and angle represent the cos values and subtypes, respectively. The marker genes for seperate subtypes, which are obtained from the class method, obtain_subtype_markers(), are labeled with different colors.
     - Parameters:
         - N/A
     - Outputs:
