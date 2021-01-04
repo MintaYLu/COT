@@ -60,7 +60,7 @@ Cosine based One-sample Test (COT) Python package is designed to detect marker g
         - N/A
     - Outputs:
         - Store the maximum cos value and the corresponding subtype for each gene at the class attribute, df_cos, where the index is the gene name, and the column “cos”, “subtype” represent the maximum cos value and the corresponding subtype, repectively.
-- estimate_p_values(): Estimate the p-value for the maximum cos value of each gene. During this step, the distribution of the maximum cos value is fitted to $k$ Gaussian functions, $$f_\text{dist}(x)$$, where $k$ is the number of subtypes. Then the p-value can be estimated as <img src="https://render.githubusercontent.com/render/math?math=p = \int_{x_\text{min}}^{x_\text{max}}{f_\text{dist}(x) dx}">
+- estimate_p_values(): Estimate the p-value for the maximum cos value of each gene. During this step, the distribution of the maximum cos value is fitted to <img src="https://render.githubusercontent.com/render/math?math=k"> Gaussian functions, <img src="https://render.githubusercontent.com/render/math?math=f_\text{dist}(x)">, where <img src="https://render.githubusercontent.com/render/math?math=k"> is the number of subtypes. Then the p-value can be estimated as <img src="https://render.githubusercontent.com/render/math?math=p = \int_{x_\text{min}}^{x_\text{max}}{f_\text{dist}(x) dx}">.
     - Parameters:
         - N/A
     - Outputs:
