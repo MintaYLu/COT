@@ -23,16 +23,15 @@ class COT:
         
         self.silent = silent
         
-        
         if self.df_raw is None and self.df_mean is None:
             raise ValueError("df_raw and df_mean cannot be None at the same time.")
-            
+        
         if logarithmic_data:
             if self.df_raw is not None:
                 self.df_raw = self.df_raw.apply(lambda x: 2 ** x)
             if self.df_mean is not None:
                 self.df_mean = self.df_mean.apply(lambda x: 2 ** x)
-                
+        
         if normalization:
             if self.df_raw is not None:
                 nor_mean = self.df_raw.sum(axis=0).mean()
@@ -40,7 +39,7 @@ class COT:
                 nor_const = math.floor(nor_mean / (10**nor_digit)) * (10**nor_digit)
                 for sample in self.df_raw:
                     self.df_raw[sample] = self.df_raw[sample] / self.df_raw[sample].sum() * nor_const
-                
+            
             if self.df_mean is not None:
                 nor_mean = self.df_mean.sum(axis=0).mean()
                 nor_digit = math.floor(math.log10(nor_mean))
@@ -78,13 +77,13 @@ class COT:
         
         self.df_cos = pd.DataFrame(index=df_mean_cos.index)
         self.df_cos['cos'] = df_mean_cos.apply(lambda x: np.max(x), axis=1)
-        self.df_cos['subtype'] = df_mean_cos.apply(lambda x: df_mean_cos.columns[np.argmax(x)], axis=1)
+        self.df_cos['subtype'] = df_mean_cos.apply(lambda x: np.argmax(x), axis=1)
         
         if not self.silent:
             print(f"COT: cos values generated.")
     
     def estimate_p_values(self):
-        print("COT: estimating p-values.....")
+        print("COT: estimating p-values ...")
         count = 0
         dataFit = self.df_cos.sort_values(by='cos', ascending=False)
         dataFit = np.array(dataFit['cos'])
@@ -114,7 +113,7 @@ class COT:
             clusDic = collections.defaultdict(list)
             for i in range(len(cluster.labels_)):
                 clusDic[cluster.labels_[i]].append(dataFit[i])
-
+            
             gmW = np.zeros(subNum)
             gmM = np.zeros([subNum, 1])
             gmP = np.zeros([subNum, 1, 1])
@@ -122,11 +121,11 @@ class COT:
                 gmW[i] = len(clusDic[clus]) / len(dataFit)
                 gmM[i] = sum(clusDic[clus]) / len(clusDic[clus])
                 gmP[i] = 1 / np.array(clusDic[clus]).var()
-   
+            
             gm = GaussianMixture(n_components=subNum, tol=1e-5, max_iter=10000,
                                  weights_init=gmW, means_init=gmM, precisions_init=gmP).fit(dataFit.reshape(-1, 1))
             pvalFit = 1 - mix_norm_cdf(dataFit, gm.weights_, gm.means_, gm.covariances_, 1/(subNum**0.5), 1)
-    
+            
             dataFitNew = []   
             for i in range(1, len(pThreL)):       
                 numExp[i - 1] = int(dataNum * (pThreL[i] - pThreL[i-1]))
@@ -141,7 +140,7 @@ class COT:
             dataNum = len(dataFit)
             toc = time.perf_counter()
             print(f"Iteration {count}: {toc - tic:0.4f} seconds")
-            
+        
         self.df_cos['p.value'] = 1 - mix_norm_cdf(self.df_cos['cos'], gm.weights_, gm.means_, gm.covariances_, 1/(subNum**0.5), 1)
         self.df_cos['q.value'] = multipletests(self.df_cos['p.value'], method='fdr_bh')[1]
         print("COT: p-values estimated.")
@@ -149,20 +148,20 @@ class COT:
     def obtain_subtype_markers(self, pThre=None, qThre=0.05, top=None, per=None):
         self.markers = {i: [] for i in self.subtypes.keys()}
         cos_sorted = self.df_cos.sort_values(by='cos', ascending=False)  
-            
+        
         for i in range(top if top else len(cos_sorted)):
             self.markers[cos_sorted.iloc[i, 1]].append(cos_sorted.index[i])
-            
+        
         if per is not None:
             for subtype in self.markers:
                 if len(self.markers[subtype]) > per:
                     self.markers[subtype] = self.markers[subtype][:per]
-            
+        
         if pThre is not None:
             for subtype in self.markers:
                 self.markers[subtype] =\
                 cos_sorted.loc[self.markers[subtype]].index[cos_sorted.loc[self.markers[subtype], 'p.value'] <= pThre]
-                
+        
         if qThre is not None:
             for subtype in self.markers:
                 self.markers[subtype] =\
@@ -172,13 +171,13 @@ class COT:
         X = self.df_mean
         Xproj = X.divide(X.sum(axis=1), axis=0)
         Xproj = Xproj.to_numpy().transpose()
-
+        
         K = len(X.columns)
         A = np.identity(K)
         PS = np.vstack((np.cos(np.arange(K) * 2 * np.pi / K), np.sin(np.arange(K) * 2 * np.pi / K)))
         tmp = np.matmul(PS, np.linalg.pinv(A))
         Xp = pd.DataFrame(np.matmul(tmp, Xproj), columns=X.index)
-                       
+               
         plt.axes().set_aspect('equal', 'datalim')
         plt.scatter(Xp.iloc[0, ], Xp.iloc[1, ], marker = 'o', s=10,
                     color='#%02x%02x%02x' % (200, 200, 200), facecolors='none', alpha=0.3)
