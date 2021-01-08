@@ -10,8 +10,7 @@ from sklearn.mixture import GaussianMixture
 from scipy.stats import norm
 from statsmodels.stats.multitest import multipletests
 
-# import warnings
-# warnings.filterwarnings("ignore")
+
 
 class COT:
     def __init__(self, df_raw=None, df_mean=None, logarithmic_data=False, normalization=True, silent=False):
@@ -24,7 +23,7 @@ class COT:
         self.silent = silent
         
         if self.df_raw is None and self.df_mean is None:
-            raise ValueError("df_raw and df_mean cannot be None at the same time.")
+            raise ValueError("COT: df_raw and df_mean cannot be None at the same time.")
         
         if logarithmic_data:
             if self.df_raw is not None:
@@ -50,18 +49,7 @@ class COT:
         if not self.silent:
             print(f"COT: package initiated.")
     
-    # def load_data(self, filename, logarithmic_data=False):
-    #   self.df_raw = pd.read_csv(filename, index_col=0)
-    #    if logarithmic_data:
-    #        self.df_raw = self.df_raw.apply(lambda x: 2 ** x)
-    #    
-    #    if not self.silent:
-    #        print(f"COT: data imported from \'{filename}\'.")
-    
     def generate_subtype_means(self, subtype_label):
-        # map_subtypes = {}
-        # for col in self.df_raw.columns:
-        #   map_subtypes.setdefault(col.split('.')[0], []).append(col)
         for sample in range(len(subtype_label)):
             self.subtypes[subtype_label[sample]].append(self.df_raw.columns[sample])
         
@@ -83,7 +71,9 @@ class COT:
             print(f"COT: cos values generated.")
     
     def estimate_p_values(self):
-        print("COT: estimating p-values ...")
+        if not self.silent:
+            print("COT: estimating p-values ...")
+        
         count = 0
         dataFit = self.df_cos.sort_values(by='cos', ascending=False)
         dataFit = np.array(dataFit['cos'])
@@ -139,11 +129,15 @@ class COT:
             dataFit = np.hstack([dataFitNew, dataFit[sum(pvalFit < pThreL[-1]):]])    
             dataNum = len(dataFit)
             toc = time.perf_counter()
-            print(f"Iteration {count}: {toc - tic:0.4f} seconds")
+            
+            if not self.silent:
+                print(f"COT: iteration {count}: {toc - tic:0.4f} seconds")
         
         self.df_cos['p.value'] = 1 - mix_norm_cdf(self.df_cos['cos'], gm.weights_, gm.means_, gm.covariances_, 1/(subNum**0.5), 1)
         self.df_cos['q.value'] = multipletests(self.df_cos['p.value'], method='fdr_bh')[1]
-        print("COT: p-values estimated.")
+        
+        if not self.silent:
+            print("COT: p-values estimated.")
     
     def obtain_subtype_markers(self, pThre=None, qThre=0.05, top=None, per=None):
         self.markers = {i: [] for i in self.subtypes.keys()}
@@ -166,6 +160,9 @@ class COT:
             for subtype in self.markers:
                 self.markers[subtype] =\
                 cos_sorted.loc[self.markers[subtype]].index[cos_sorted.loc[self.markers[subtype], 'q.value'] <= qThre]
+        
+        if not self.silent:
+            print(f"COT: marker generated.")
     
     def plot_simplex(self):
         X = self.df_mean
@@ -197,24 +194,52 @@ class COT:
         for i, text in enumerate(leg.get_texts()):
             text.set_color(mg_col[i])
     
-    # def save_cos_values(self, filename, threshold=None, sorted=True):
-    #    df_output = self.df_cos.copy()
-    #    if threshold:
-    #        df_output = df_output[df_output['cos'] >= threshold]
-    #        filename = '.'.join(filename.split('.')[:-1]) + f"_threshold={threshold}.{filename.split('.')[-1]}"
-    #    if sorted:
-    #        df_output = df_output.sort_values(by='cos', ascending=False)
-    #    
-    #    df_output.to_csv(filename, index=True)
-    #    
-    #    if not self.silent:
-    #        print(f"COT: cos values exported to \'{filename}\'.")
-    
-    def cos_pipeline(self, input_file, output_file, logarithmic_input=False, sorted_output=True, output_threshold=None):
-        self.load_data(filename=input_file, logarithmic_data=logarithmic_input)
-        self.generate_subtype_means()
+    def cot_pipeline(self, subtype_label, pThre=None, qThre=0.05, top=None, per=None):
+        self.generate_subtype_means(subtype_label)
         self.generate_cos_values()
+        self.estimate_p_values()
+        self.obtain_subtype_markers(pThre=pThre, qThre=qThre, top=top, per=per)
+        self.plot_simplex()
         
-        self.save_cos_values(filename=output_file, threshold=None, sorted=sorted_output)
-        if output_threshold:
-            self.save_cos_values(filename=output_file, threshold=output_threshold, sorted=sorted_output)
+        if not self.silent:
+            print(f"COT: pipeline completed.")
+
+
+
+class OVO(COT):
+    def generate_ovo_tstats(self):
+        df_log = np.log2(self.df_raw)
+        
+        mean = df_log.apply(lambda x: np.array([np.mean(x[col]) for col in self.subtypes.values()]), axis=1)
+        var = df_log.apply(lambda x: np.array([np.var(x[col], ddof=1) for col in self.subtypes.values()]), axis=1)
+        n = df_log.apply(lambda x: np.array([len(col) for col in self.subtypes.values()]), axis=1)
+        
+        idx = mean.apply(lambda x: np.argmax(x))
+        ovo = pd.DataFrame({'mean': mean, 'n': n, 'var': var, 'idx': idx}) \
+                .apply(lambda x: (x['mean'][x['idx']] - x['mean']) / np.sqrt(x['var'][x['idx']] / x['n'][x['idx']] + x['var'] / x['n']), axis=1) \
+                .apply(lambda x: np.sort(x)).apply(lambda x: x[1])
+        
+        subtype = idx.apply(lambda x: list(self.subtypes.keys())[x])
+        self.df_ovo = pd.DataFrame({'ovo': ovo, 'subtype': subtype}, index=df_log.index)
+        
+        if not self.silent:
+            print(f"OVO: ovo t-stats generated.")
+    
+    def obtain_subtype_markers(self, top=None):
+        self.markers = {i: [] for i in self.subtypes.keys()}
+        
+        df_select = self.df_ovo.loc[self.df_ovo['ovo'].sort_values(ascending=False)[:top].index]
+        for subtype in self.markers.keys():
+            self.markers[subtype] = df_select[df_select['subtype'] == subtype].index
+        
+        if not self.silent:
+            print(f"OVO: marker generated.")
+    
+    def ovo_pipeline(self, subtype_label, top=None):
+        self.generate_subtype_means(subtype_label)
+        self.generate_ovo_tstats()
+        self.obtain_subtype_markers(top=top)
+        self.plot_simplex()
+        
+        if not self.silent:
+            print(f"OVO: pipeline completed.")
