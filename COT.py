@@ -1,14 +1,16 @@
-import collections
-import math
 import time
+import math
 import numpy as np
 import pandas as pd
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-from sklearn.cluster import AgglomerativeClustering
-from sklearn.mixture import GaussianMixture
 from scipy.stats import norm
+from collections import defaultdict
 from statsmodels.stats.multitest import multipletests
+from sklearn.mixture import GaussianMixture
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import AgglomerativeClustering
+
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 
 
@@ -16,10 +18,9 @@ class COT:
     def __init__(self, df_raw=None, df_mean=None, logarithmic_data=False, normalization=True, silent=False):
         self.df_raw = df_raw
         self.df_mean = df_mean
-        self.subtypes = collections.defaultdict(list)
+        self.subtypes = defaultdict(list)
         self.df_cos = None
         self.markers = {}
-        
         self.silent = silent
         
         if self.df_raw is None and self.df_mean is None:
@@ -100,7 +101,7 @@ class COT:
             count += 1
             cluster = AgglomerativeClustering(n_clusters=subNum, linkage='ward')
             cluster.fit_predict(dataFit.reshape(-1, 1))
-            clusDic = collections.defaultdict(list)
+            clusDic = defaultdict(list)
             for i in range(len(cluster.labels_)):
                 clusDic[cluster.labels_[i]].append(dataFit[i])
             
@@ -193,6 +194,17 @@ class COT:
         leg = plt.legend(handles, legText, prop={'size': 8})
         for i, text in enumerate(leg.get_texts()):
             text.set_color(mg_col[i])
+        
+        plt.show()
+    
+    def plot_heatmap(self):
+        index = [marker for markers in self.markers.values() for marker in markers]
+        
+        data = StandardScaler().fit_transform(np.log(self.df_raw.loc[index].T))   
+        sns.heatmap(data, cbar=False, cmap=sns.diverging_palette(255, 0, n=100))
+        plt.xticks([])
+        plt.yticks([])
+        plt.show()
     
     def cot_pipeline(self, subtype_label, pThre=None, qThre=0.05, top=None, per=None):
         self.generate_subtype_means(subtype_label)
@@ -200,6 +212,7 @@ class COT:
         self.estimate_p_values()
         self.obtain_subtype_markers(pThre=pThre, qThre=qThre, top=top, per=per)
         self.plot_simplex()
+        self.plot_heatmap()
         
         if not self.silent:
             print(f"COT: pipeline completed.")
