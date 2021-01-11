@@ -12,9 +12,14 @@
 **Dependencies**
 COT requires:
 
-- Python (>= 3.6)
-- NumPy (>= 1.13.3)
-- Pandas (>= 0.25.0)
+- python (>= 3.7.4)
+- numpy (>= 1.16.5)
+- scipy (>= 1.3.1)
+- pandas (>= 0.25.1)
+- statsmodels (>= 0.10.1)
+- scikit-learn (>= 0.21.3)
+- seaborn (>= 0.9.0)
+- matplotlib (>= 3.1.1)
 
 **Installation**
 If you already have a working installation of numpy and pandas, the easiest way to install COT is downloading the COT.py file at: <Add link here>.
