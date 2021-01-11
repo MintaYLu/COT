@@ -86,31 +86,39 @@ Cosine based One-sample Test (COT) Python package is designed to detect marker g
         - N/A
 
 ## Example:
-1. Perform COT calculation step by step:
+### Perform COT calculation step by step:
     1. Import the COT package
     from COT import COT
-    cot = COT()
-    2. Load the csv file (“input_gene.csv”)
-    cot.load_data(filename="input_gene.csv", logarithmic_data=False)
+    
+    2. Create COT class instance and load the raw data
+    cot = COT(df_raw=df_raw, normalization=False)
 
-input: “input_gene.csv”
+input:
+df_raw
 
-| gene | A   | A   | B   | B   |
+| gene | S1  | S2  | S3  | S4  |
 | ---- | --- | --- | --- | --- |
 | 0    | 0.5 | 0.7 | 0.7 | 0.9 |
 | 1    | 1.0 | 1.0 | 0.0 | 0.0 |
 
-output: df_raw
+output:
+cot.df_raw
 
-| gene | A   | A.1 | B   | B.1 |
+| gene | S1  | S2  | S3  | S4  |
 | ---- | --- | --- | --- | --- |
 | 0    | 0.5 | 0.7 | 0.7 | 0.9 |
 | 1    | 1.0 | 1.0 | 0.0 | 0.0 |
 
     3. Generate the subtype mean values
-    cot.generate_subtype_means()
+    cot.generate_subtype_means(subtype_label=subtype_label)
 
-output: df_mean
+input:
+subtype_label = ["A", "A", "B", "B"]
+
+output:
+cot.subtypes {"A": ["S1", "S2"], "B": ["S3", "S4"]}
+
+cot.df_mean
 
 | gene | A   | B   |
 | ---- | --- | --- |
@@ -120,36 +128,41 @@ output: df_mean
     4. Generate the cosine values
     cot.generate_cos_values()
 
-output: df_cos
+output:
+cot.df_cos
 
 | gene | cos | subtype |
 | ---- | --- | ------- |
 | 0    | 0.8 | B       |
 | 1    | 1.0 | A       |
 
-    5. Export the cosine values (without a threshold)
-    cot.save_cos_values(filename="output_cos.csv", threshold=None, sorted=True)
+    5. Estimate the p-values
+    cot.estimate_p_values()
 
-output: “output_cos.csv”
+output:
+cot.df_cos
 
-| gene | cos | subtype |
-| ---- | --- | ------- |
-| 1    | 1.0 | A       |
-| 0    | 0.8 | B       |
+| gene | cos | subtype | p.value | q.value |
+| ---- | --- | ------- |---------|---------|
+| 1    | 1.0 | A       |         |         |
+| 0    | 0.8 | B       |         |         |
 
-    6. Export the cosine values (with a threshold)
-    cot.save_cos_values(filename="output_cos.csv", threshold=0.9, sorted=True)
+    6. Obtain the subtype markers
+    cot.obtain_subtype_markers()
 
-output: “output_cos_threshold=0.9.csv”
+output:
+cot.markers = {"A": [1], "B": [0]}
 
-| gene | cos | subtype |
-| ---- | --- | ------- |
-| 1    | 1.0 | A       |
+    7. Plot the simplex
+    cot. plot_simplex()
 
-2. Or use the pipeline:
+    8. Plot the heatmap
+    cot.plot_heatmap()
+
+### Or use the pipeline:
     from COT import COT
     
-    cot = COT()
-    cot.cos_pipeline(input_file="input_gene.csv",output_file="output_cos.csv", logarithmic_input=False, sorted_output=True, output_threshold=0.9)
+    cot = COT(df_raw=df_raw, normalization=False)
+    cot.cos_pipeline(subtype_label=subtype_label, top=2)
 
 Then we will obtain the same output with a single step.
