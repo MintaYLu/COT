@@ -66,7 +66,7 @@ class COT:
         
         self.df_cos = pd.DataFrame(index=df_mean_cos.index)
         self.df_cos['cos'] = df_mean_cos.apply(lambda x: np.max(x), axis=1)
-        self.df_cos['subtype'] = df_mean_cos.apply(lambda x: np.argmax(x), axis=1)
+        self.df_cos['subtype'] = df_mean_cos.apply(lambda x: df_mean_cos.columns[np.argmax(x)], axis=1)
         
         if not self.silent:
             print(f"COT: cos values generated.")
@@ -136,34 +136,49 @@ class COT:
         
         self.df_cos['p.value'] = 1 - mix_norm_cdf(self.df_cos['cos'], gm.weights_, gm.means_, gm.covariances_, 1/(subNum**0.5), 1)
         self.df_cos['q.value'] = multipletests(self.df_cos['p.value'], method='fdr_bh')[1]
-        
+        self.df_cos['score'] = None
+        self.df_cos['score_subtype'] = None
         if not self.silent:
             print("COT: p-values estimated.")
     
-    def obtain_subtype_markers(self, pThre=None, qThre=0.05, top=None, per=None):
+    def obtain_subtype_markers(self, pThre=None, qThre=0.05, cosThre=None, top=None, per=None, scoreThre=None):
         self.markers = {i: [] for i in self.subtypes.keys()}
-        cos_sorted = self.df_cos.sort_values(by='cos', ascending=False)  
+        if scoreThre is not None:
+            df_sorted = self.df_cos.sort_values(by='score', ascending=False)
+        else:
+            df_sorted = self.df_cos.sort_values(by='cos', ascending=False)  
         
-        for i in range(top if top else len(cos_sorted)):
-            self.markers[cos_sorted.iloc[i, 1]].append(cos_sorted.index[i])
+        for i in range(top if top else len(df_sorted)):
+            self.markers[df_sorted.iloc[i, 1]].append(df_sorted.index[i])
         
         if per is not None:
             for subtype in self.markers:
                 if len(self.markers[subtype]) > per:
                     self.markers[subtype] = self.markers[subtype][:per]
-        
-        if pThre is not None:
+                    
+        if scoreThre is not None:
             for subtype in self.markers:
                 self.markers[subtype] =\
-                cos_sorted.loc[self.markers[subtype]].index[cos_sorted.loc[self.markers[subtype], 'p.value'] <= pThre]
+                df_sorted.loc[self.markers[subtype]].index[df_sorted.loc[self.markers[subtype], 'score'] >= scoreThre]
         
-        if qThre is not None:
-            for subtype in self.markers:
-                self.markers[subtype] =\
-                cos_sorted.loc[self.markers[subtype]].index[cos_sorted.loc[self.markers[subtype], 'q.value'] <= qThre]
+        else:
+            if cosThre is not None:
+                for subtype in self.markers:
+                    self.markers[subtype] =\
+                    df_sorted.loc[self.markers[subtype]].index[df_sorted.loc[self.markers[subtype], 'cos'] >= pThre]
+                    
+            if pThre is not None:
+                for subtype in self.markers:
+                    self.markers[subtype] =\
+                    df_sorted.loc[self.markers[subtype]].index[df_sorted.loc[self.markers[subtype], 'p.value'] <= pThre]
+        
+            if qThre is not None:
+                for subtype in self.markers:
+                    self.markers[subtype] =\
+                    df_sorted.loc[self.markers[subtype]].index[df_sorted.loc[self.markers[subtype], 'q.value'] <= qThre]
         
         if not self.silent:
-            print(f"COT: marker generated.")
+            print(f"COT: subtype markers generated.")
     
     def plot_simplex(self):
         X = self.df_mean
