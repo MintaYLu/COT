@@ -144,8 +144,10 @@ cot.df_cos
 
 | gene | cos | subtype | p.value | q.value |
 | ---- | --- | ------- |---------|---------|
-| 1    | 1.0 | A       |         |         |
-| 0    | 0.8 | B       |         |         |
+| 1    | 1.0 | A       | ?       | ?       |
+| 0    | 0.8 | B       | ?       | ?       |
+
+Error due to the limited rows.
 
     6. Obtain the subtype markers
     cot.obtain_subtype_markers()
