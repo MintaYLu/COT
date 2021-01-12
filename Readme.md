@@ -13,12 +13,12 @@
 COT requires:
 
 - python (>= 3.7.4)
-- numpy (>= 1.16.5)
+- numpy (>= 1.19.5)
 - scipy (>= 1.3.1)
-- pandas (>= 0.25.1)
+- pandas (>= 1.2.0)
 - statsmodels (>= 0.10.1)
 - scikit-learn (>= 0.21.3)
-- seaborn (>= 0.9.0)
+- seaborn (>= 0.11.1)
 - matplotlib (>= 3.1.1)
 
 **Installation**
