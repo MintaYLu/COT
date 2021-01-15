@@ -11,7 +11,7 @@ setuptools.setup(
     description="Cosine based One-sample Test (COT) is an accurate and efficient method to detect subtype-specific marker genes (SMG) among many subtypes.",
     long_description=long_description,
     url="https://github.com/MintaYLu/COT",
-    packages="COT",
+    packages=["COT"],
     install_requires=[
        'numpy>=1.19.5',
        'pandas>=1.2.0',
