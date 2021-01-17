@@ -1,5 +1,9 @@
 # Readme
 
+<p style='color:red'>This is some red text.</p>
+<font color="red">This is some text!</font>
+These are <b style='color:red'>red words</b>.
+
 ## **Description**
 
 **COT** is a Python module for machine learning built on top of NumPy and Pandas, and is distributed under the MIT license. Cosine based One-sample Test (COT) is an accurate and efficient method -to detect SMG among many subtypes using subtype-enriched expression profiles. Basically, COT uses the cosine similarity between a molecule’s cross-subtype expression pattern and the exact mathematical definition of SMG as the test statistic, and formulates the detection problem as a one-sample test. Under the assumption that a significant majority of genes are associated with the null hypothesis, COT approximates the empirical null distribution for calculating p-values. The project was developed and maintained by Virginia Tech CBIL Group.
