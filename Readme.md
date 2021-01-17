@@ -1,6 +1,8 @@
 # Readme
 
-![#f7e4c0](This is some red text.)
+<div class="bg-green-light mb-2">
+  .text-gray-dark on .bg-green-light
+</div>
 
 ## **Description**
 
