@@ -83,7 +83,7 @@ cot.df_cos
 
     5. Estimate the p-values
     cot.estimate_p_values()
-
+Attention: too few genes may not work for predicting p-values.  
 output:
 cot.df_cos
 
@@ -92,7 +92,7 @@ cot.df_cos
 | 1    | 1.0 | A       | ?       | ?       |
 | 0    | 0.8 | B       | ?       | ?       |
 
-Cannot calculate p-value due to the limited rows.
+Cannot calculate p-values due to the limited genes numbers, please see the Example_GSE28490 for p-values computation.
 
     6. Obtain the subtype markers
     cot.obtain_subtype_markers()
