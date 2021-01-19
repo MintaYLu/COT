@@ -97,42 +97,46 @@ class COT:
             return mcdf.reshape(-1)
         
         while ((sum(pvalFit < pThreL[-1]) - dataNum * pThreL[-1]) / sum(pvalFit < pThreL[-1])) > 0.001:
-            tic = time.perf_counter()
-            count += 1
-            cluster = AgglomerativeClustering(n_clusters=subNum, linkage='ward')
-            cluster.fit_predict(dataFit.reshape(-1, 1))
-            clusDic = defaultdict(list)
-            for i in range(len(cluster.labels_)):
-                clusDic[cluster.labels_[i]].append(dataFit[i])
-            
-            gmW = np.zeros(subNum)
-            gmM = np.zeros([subNum, 1])
-            gmP = np.zeros([subNum, 1, 1])
-            for i, clus in enumerate(clusDic):
-                gmW[i] = len(clusDic[clus]) / len(dataFit)
-                gmM[i] = sum(clusDic[clus]) / len(clusDic[clus])
-                gmP[i] = 1 / np.array(clusDic[clus]).var()
-            
-            gm = GaussianMixture(n_components=subNum, tol=1e-5, max_iter=10000,
-                                 weights_init=gmW, means_init=gmM, precisions_init=gmP).fit(dataFit.reshape(-1, 1))
-            pvalFit = 1 - mix_norm_cdf(dataFit, gm.weights_, gm.means_, gm.covariances_, 1/(subNum**0.5), 1)
-            
-            dataFitNew = []   
-            for i in range(1, len(pThreL)):       
-                numExp[i - 1] = int(dataNum * (pThreL[i] - pThreL[i-1]))
-                numObs[i - 1] = sum(pvalFit < pThreL[i]) - sum(pvalFit < pThreL[i-1])       
-                if int(dataNum * (pThreL[i] - pThreL[i-1])) < (sum(pvalFit < pThreL[i]) - sum(pvalFit < pThreL[i-1])):          
-                    picked = (np.linspace(sum(pvalFit < pThreL[i-1]), sum(pvalFit < pThreL[i]), int(dataNum * (pThreL[i] - pThreL[i-1])), 
-                                      endpoint=False)).astype(int)
-                    dataFitNew = np.hstack([dataFitNew, dataFit[picked]])
-                else:
-                    dataFitNew = np.hstack([dataFitNew, dataFit[sum(pvalFit < pThreL[i-1]):sum(pvalFit < pThreL[i])]])
-            dataFit = np.hstack([dataFitNew, dataFit[sum(pvalFit < pThreL[-1]):]])    
-            dataNum = len(dataFit)
-            toc = time.perf_counter()
-            
-            if not self.silent:
-                print(f"COT: iteration {count}: {toc - tic:0.4f} seconds")
+            try:
+                tic = time.perf_counter()
+                count += 1
+                cluster = AgglomerativeClustering(n_clusters=subNum, linkage='ward')
+                cluster.fit_predict(dataFit.reshape(-1, 1))
+                clusDic = defaultdict(list)
+                for i in range(len(cluster.labels_)):
+                    clusDic[cluster.labels_[i]].append(dataFit[i])
+                
+                gmW = np.zeros(subNum)
+                gmM = np.zeros([subNum, 1])
+                gmP = np.zeros([subNum, 1, 1])
+                for i, clus in enumerate(clusDic):
+                    gmW[i] = len(clusDic[clus]) / len(dataFit)
+                    gmM[i] = sum(clusDic[clus]) / len(clusDic[clus])
+                    gmP[i] = 1 / np.array(clusDic[clus]).var()
+                
+                gm = GaussianMixture(n_components=subNum, tol=1e-5, max_iter=10000,
+                                     weights_init=gmW, means_init=gmM, precisions_init=gmP).fit(dataFit.reshape(-1, 1))
+                pvalFit = 1 - mix_norm_cdf(dataFit, gm.weights_, gm.means_, gm.covariances_, 1/(subNum**0.5), 1)
+                
+                dataFitNew = []   
+                for i in range(1, len(pThreL)):       
+                    numExp[i - 1] = int(dataNum * (pThreL[i] - pThreL[i-1]))
+                    numObs[i - 1] = sum(pvalFit < pThreL[i]) - sum(pvalFit < pThreL[i-1])       
+                    if int(dataNum * (pThreL[i] - pThreL[i-1])) < (sum(pvalFit < pThreL[i]) - sum(pvalFit < pThreL[i-1])):          
+                        picked = (np.linspace(sum(pvalFit < pThreL[i-1]), sum(pvalFit < pThreL[i]), int(dataNum * (pThreL[i] - pThreL[i-1])), 
+                                          endpoint=False)).astype(int)
+                        dataFitNew = np.hstack([dataFitNew, dataFit[picked]])
+                    else:
+                        dataFitNew = np.hstack([dataFitNew, dataFit[sum(pvalFit < pThreL[i-1]):sum(pvalFit < pThreL[i])]])
+                dataFit = np.hstack([dataFitNew, dataFit[sum(pvalFit < pThreL[-1]):]])    
+                dataNum = len(dataFit)
+                toc = time.perf_counter()
+                
+                if not self.silent:
+                    print(f"COT: iteration {count}: {toc - tic:0.4f} seconds")
+            except:
+                print(f"COT-Error: too few genes, failed in p-value estimation!")
+                return
         
         self.df_cos['p.value'] = 1 - mix_norm_cdf(self.df_cos['cos'], gm.weights_, gm.means_, gm.covariances_, 1/(subNum**0.5), 1)
         self.df_cos['q.value'] = multipletests(self.df_cos['p.value'], method='fdr_bh')[1]
