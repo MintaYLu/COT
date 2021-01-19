@@ -92,7 +92,7 @@ cot.df_cos
 | 1    | 1.0 | A       | ?       | ?       |
 | 0    | 0.8 | B       | ?       | ?       |
 
-Error due to the limited rows.
+Cannot calculate p-value due to the limited rows.
 
     6. Obtain the subtype markers
     cot.obtain_subtype_markers()
