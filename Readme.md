@@ -83,7 +83,7 @@ cot.df_cos
 
     5. Estimate the p-values
     cot.estimate_p_values()
-Attention: too few genes may not work for predicting p-values.  
+Attention: too few genes may not work for predicting p-values. Please remove NaN before this step.
 output:
 cot.df_cos
 
