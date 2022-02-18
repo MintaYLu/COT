@@ -40,6 +40,7 @@ To install from a local copy, please go to the main package folder and run:
 
 input:
 df_raw
+
 Note that the input of COT should be batch-corrected.
 
 | gene | S1  | S2  | S3  | S4  |
