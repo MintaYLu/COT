@@ -116,7 +116,7 @@ cot.markers = {"A": [1], "B": [0]}
 
 Then we will obtain the same output with a single step.
 
-
+ 
 ## **License**
 This project is licensed under the MIT License - see the LICENSE.txt file for details
 
